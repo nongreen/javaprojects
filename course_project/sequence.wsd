@@ -1,0 +1,162 @@
+@startuml sequence
+
+autonumber
+
+actor "Not authorized\n user" as noauth
+actor "Cashier" as cashier
+actor "Deliveryman" as deliveryman
+actor "Accountant" as accountant
+actor "Admin" as admin
+
+/' Cashier '/
+participant "Login form" as login_form
+participant "Fixate sale \nform" as fixate_sales_form
+participant "Record order \non deliver form" as record_order_deliver_form
+participant "Generate report \nabout day \nsales form" as generate_report_about_day_sales
+
+/' Deliveryman '/
+participant "Order list" as order_list
+participant "Generate report \nabout completed \norder" as completed_order_report
+
+/' Accountant '/
+participant "Report list" as report_list
+
+/' Admin '/
+participant "User list" as user_list
+participant "User creation from" as user_creation
+participant "User edit form" as user_edit
+
+participant "DB" as DB
+
+/' ------------------------- '/
+
+noauth -> login_form ++ : Open
+activate noauth
+
+loop user data isn't correct
+    login_form -> login_form : Enter username & password
+    login_form -> login_form : Submit
+    login_form -> DB ++ : Verificate user
+    login_form <-- DB -- : Result 
+end
+
+noauth <-- login_form -- : authorize
+deactivate noauth
+
+== Cashier ==
+
+cashier -> fixate_sales_form ++: Fixate sold goods
+activate cashier
+fixate_sales_form -> DB ++ : Get dishes ready for sales
+fixate_sales_form <-- DB -- : dishes ready for sales
+fixate_sales_form -> fixate_sales_form : Select sold goods
+fixate_sales_form -> fixate_sales_form : Submit
+fixate_sales_form -> DB ++ : Write off ingredients for sold dishes
+fixate_sales_form -> DB -- : Record sales
+deactivate DB
+deactivate cashier
+
+|||
+
+cashier -> record_order_deliver_form ++ : Record order on deliver
+activate cashier
+record_order_deliver_form -> DB ++ : Get dishes ready for sales
+record_order_deliver_form <-- DB -- : dishes ready for sales
+record_order_deliver_form -> record_order_deliver_form : Select dishes for deliver
+record_order_deliver_form -> record_order_deliver_form : Select delivery point and date
+record_order_deliver_form -> record_order_deliver_form : Submit
+record_order_deliver_form -> DB : record order
+deactivate record_order_deliver_form
+deactivate cashier
+
+|||
+
+cashier -> generate_report_about_day_sales ++ : Generate report about day sales
+activate cashier
+generate_report_about_day_sales -> DB ++ : Get today sales
+generate_report_about_day_sales <-- DB -- : today sales
+generate_report_about_day_sales -> generate_report_about_day_sales : Preview report
+
+
+group optional
+generate_report_about_day_sales -> generate_report_about_day_sales -- : Print report
+end
+
+deactivate cashier
+
+== Deliveryman ==
+deliveryman -> order_list ++ : Open
+activate deliveryman
+order_list -> DB ++ : Get orders on delivery
+order_list <-- DB -- : Orders on delivery
+order_list -> order_list : Display orders
+
+alt Deliveryman have orders less max
+    group optional
+        order_list -> order_list : Accept order
+        order_list -> DB : Write off ingredients on dish
+    end
+end
+
+deactivate deliveryman
+deactivate order_list
+
+|||
+
+deliveryman -> completed_order_report ++ : Generate report about completed order
+activate deliveryman 
+completed_order_report -> completed_order_report : Select order
+completed_order_report -> DB : Record completed order
+
+deactivate deliveryman
+deactivate completed_order_report
+
+== Accountant ==
+accountant -> report_list ++ : Open
+activate accountant 
+report_list -> DB ++ : Get list of reports
+report_list <-- DB -- : list of reports
+report_list -> report_list : Display list of reports
+
+group optional
+    report_list -> report_list : Select report for preview
+    report_list -> report_list : Preview report
+    group optional 
+    report_list -> report_list -- : Print report
+    end
+end
+
+deactivate accountant
+
+== Admin ==
+admin -> user_list ++ : Open
+activate admin
+user_list -> DB ++ : Get user list 
+user_list <-- DB -- : User list
+
+user_list -> user_creation ++ : Open
+user_creation -> user_creation : Enter user fields
+user_creation -> user_creation : Enter user type
+user_creation -> DB : Add new user
+user_list <- user_creation -- : Return
+
+|||
+
+user_list -> user_list : Select user for edit
+user_list -> user_edit ++ : Open
+user_edit -> user_edit : Load real fields of user in inputs
+user_edit -> user_edit : Edit user
+user_edit -> user_edit : Submit
+user_edit -> DB : Edit user
+user_list <- user_edit -- : Return
+
+|||
+
+user_list -> user_list : Select user(s) for deletion
+user_list -> user_list : Submit deletion
+user_list -> DB : Delete user(s)
+
+deactivate admin
+deactivate user_list
+
+@enduml

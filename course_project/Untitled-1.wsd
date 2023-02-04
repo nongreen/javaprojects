@@ -1,0 +1,66 @@
+@startuml usecase
+
+/' Actors '/
+actor "Not authorized user" as noauth
+actor "Cashier" as cashier
+actor "Accountant" as accountant
+actor "Deliveryman" as deliveryman
+actor "Admin" as admin
+
+/' Use cases '/
+
+/' cashier '/
+(Fixate sales) as fixate_sales
+(Write order on delivery) as write_order
+(Generate report about day sales) as generate_report_day_sales
+
+/' cashier 2LVL '/
+(Select sold goods) as select_goods_for_sales
+(Goods, delivery point and delivery time) as write_order_attrs
+(Print report about day sales) as print_report_day_sales
+
+/' accountant '/
+(View reports) as view_reports
+(Print report) as print_report
+
+/' deliveryman '/
+(View orders on delivery) as view_orders
+(Generate report about completed delivery) as generate_delivery_report
+
+/' admin '/
+(Create user) as create_user
+(Edit user) as edit_user
+(Delete user) as delete_user
+
+/' --------------------------- '/
+
+/' noauth '/
+noauth --|> cashier
+noauth --|> accountant
+noauth --|> deliveryman
+noauth --|> admin
+
+/' cashier '/
+cashier --> fixate_sales
+cashier --> write_order
+cashier --> generate_report_day_sales
+
+/' cashier 2LVL '/
+select_goods_for_sales --.> fixate_sales : include
+write_order_attrs --.> write_order : include
+print_report_day_sales --.> generate_report_day_sales : extend
+
+/' accountant '/
+accountant --> view_reports
+accountant --> print_report
+
+/' deliveryman '/
+deliveryman --> view_orders
+deliveryman --> generate_delivery_report
+
+/' admin '/
+admin --> create_user
+admin --> edit_user
+admin --> delete_user
+
+@enduml

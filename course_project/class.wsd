@@ -1,0 +1,274 @@
+@startuml class
+
+package db {
+    interface IModel {
+        void save()
+        void delete()
+    }
+
+    class DataBase {
+        - String host
+        - Int port
+        - String login
+        - String password
+
+        + DataBase DataBase(...)
+
+        + String getHost()
+        + Int getPort()
+        + String getLogin()
+        + String getPassword()
+
+        + void setHost(String host)
+        + void setPort(Int port)
+        + void setLogin(String login)
+        + void setPassword(String password)
+    }
+}
+
+package models {
+    /' User '/
+    class User {
+        - String username
+        - String password
+
+        - User user()
+
+        + String getUsername()
+        + String getPassword()
+        + void setUsername(String username)
+        + void setPassword(String password)
+    }
+
+    class Cashier {
+        - String fullName
+        - Int salary
+
+        + Cashier Cashier(...)
+
+        + String getFullName()
+        + Int getSalary()
+        + void setFullName(String fullName)
+        + void setSalary(Int salary)
+    }
+
+    class Accountant {
+        - String fullName
+        - Int salary
+        - Int permissionLevel
+
+        + Accountant Accountant(...)
+
+        + String getFullName()
+        + Int getSalary()
+        + Int getPermissionLevel()
+
+        + void setFullName(String fullName)
+        + void setSalary(Int salary)
+        + void setPermissionLevel(Int permissionLevel)
+    }
+
+    class DeliveryMan {
+        - String fullName
+        - Int salary
+        - Order[] orders
+
+        + DeliveryMan DeliveryMan()
+
+        + String getFullName()
+        + Int getSalary()
+        + Order[] getOrders()
+
+        + void setFullName(String fullName)
+        + void setSalary(Int salary)
+
+        + void appendOrder(Order order)
+        + void deleteOrder(Order order)
+    }
+
+    class Admin {
+        - Int permissionLevel
+        
+        + Admin Admin()
+
+        + Int getPermissionLevel()
+        + void setPermissionLevel(Int permissionLevel)
+    }
+
+    /' End of User '/
+
+    /' Dish '/
+    class Dish {
+        - String name
+        - Int price
+        - Ingredient[] ingredients
+
+        + Dish Dish(...)
+
+        + void appendIngredient(Ingredient ingredient)
+        + void deleteIngredient(Ingredient ingredient)
+
+        + String getName()
+        + Int getPrice()
+        + Ingredient[] getIngredients()
+
+        + void setName(String name)
+        + void setPrice(Int price)
+    }
+
+    class Ingredient {
+        - String name
+        - Int count
+
+        Ingredient Ingredient()
+
+        + String getName()
+        + Int getCount()
+        + void setName(String name)
+        + void setCount(Int count)
+    }
+    /' end of Dish '/
+
+    /' Order '/
+    enum ORDER_STATUS {
+        NOT_AVAILABLE
+        COMPLETED
+        VACANT
+        ENGAGED
+        CANCELED
+    }
+
+    class Order {
+        - Geo deliveryPoint
+        - Dish[] dishes
+        - Date deliveryTime
+        - ORDER_STATUS status
+        - DeliveryMan deliveryman
+        
+        + Order Order(...)
+
+        + Geo getDeliveryPoint()
+        + Date getDeliveryTime()
+        + Dish[] getDishes()
+        + ORDER_STATUS getStatus()
+        + DeliveryMan getDeliveryman()
+
+        + void setDeliveryPoint(Geo deliveryPoint)
+        + void setDeliveryTime(Date deliveryTime)
+        + void setStatus(ORDER_STATUS status)
+        + void setDeliveryman(DeliveryMan deliveryman)
+
+        + void appendDish(Dish dish)
+        + void setDishes(Dish[] Dishes)
+    }
+    /' End of Order '/
+
+
+    /' Reports '/
+    
+    class Report {
+        - Date date
+        - User Creator
+
+        + Date getDate()
+        + User getCreator()
+
+        + void setDate(Date date)
+        + void setCreator(User Creator)
+
+        + void saveAsFile(String pathToFile)
+    }
+
+    class DaySalesReport {
+        - Sale[] sales
+
+        + Sale[] getSales()
+        + void setSales(Sale[] sales)
+    }
+
+    class CompletedOrderReport {
+        - Order order
+        + Order getOrder()
+        + void setOrder(Order order)
+    }
+
+    /' end of Report '/
+}
+
+
+package domain {
+    class OrderDomain {
+        + {static} void acceptOrder(Order order, Deliveryman order)
+        + {static} void completeOrder(Order order)
+    }
+
+    class DishDomain {
+        + {static} Dish[] getDishesReadyForSale()
+        + {static} Int calculateMaxCountDishes()
+        + {static} void writeOffIngredientsForDish(Dish dish)
+    }
+
+    class SaleDomain {
+        + {static} Sale[] getDaySales()
+    }
+
+    class UserDomain {
+        + {static} bool verificationUser(User user)
+    }
+
+    class Sale {
+        - Dish dish
+        - Int count
+
+        + Sale Sale(...)
+
+        + Int getSummaryCost()
+
+        + Dish getDish()
+        + Int getCount()
+
+        + void setDish(Dish dish)
+        + void setCount(Int count)
+    }
+
+    class Printer {
+        - Int name
+
+        + Printer Printer(...)
+
+        + Int getName()
+        + void setName(Int name)
+
+        + void printReport(Report report)
+    }
+}
+
+IModel <|.- User
+IModel <|.- Report
+IModel <|.- Dish
+IModel <|.- Order
+IModel <|.- Ingredient
+
+User <|-- Cashier
+User <|-- Accountant
+User <|-- DeliveryMan
+User <|-- Admin
+
+Report <|-- DaySalesReport
+Report <|-- CompletedOrderReport
+
+Sale --o DaySalesReport
+
+Dish -- DishDomain
+Dish --o Order
+Dish --o Sale
+Dish o-- Ingredient
+
+Order -- ORDER_STATUS
+Order -- OrderDomain
+Order -o DeliveryMan
+Order -o CompletedOrderReport
+
+Printer -- Report
+
+@enduml
